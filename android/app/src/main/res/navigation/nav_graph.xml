@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.xiaohongshu.ui.login.LoginFragment"
+        android:label="登录"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_loginFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.xiaohongshu.ui.home.HomeFragment"
+        android:label="首页"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_homeFragment_to_noteDetailFragment"
+            app:destination="@id/noteDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/publishFragment"
+        android:name="com.example.xiaohongshu.ui.publish.PublishFragment"
+        android:label="发布"
+        tools:layout="@layout/fragment_publish" />
+
+    <fragment
+        android:id="@+id/messageFragment"
+        android:name="com.example.xiaohongshu.ui.message.MessageFragment"
+        android:label="消息"
+        tools:layout="@layout/fragment_message" />
+
+    <fragment
+        android:id="@+id/noteDetailFragment"
+        android:name="com.example.xiaohongshu.ui.detail.NoteDetailFragment"
+        android:label="笔记详情"
+        tools:layout="@layout/fragment_note_detail">
+        <argument
+            android:name="noteId"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/meFragment"
+        android:name="com.example.xiaohongshu.ui.me.MeFragment"
+        android:label="我的"
+        tools:layout="@layout/fragment_me" />
+
+    <fragment
+        android:id="@+id/userListFragment"
+        android:name="com.example.xiaohongshu.ui.user.UserListFragment"
+        android:label="用户列表"
+        tools:layout="@layout/fragment_user_list">
+        <argument
+            android:name="type"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="userId"
+            app:argType="long"
+            android:defaultValue="0L" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/interactionListFragment"
+        android:name="com.example.xiaohongshu.ui.interaction.InteractionListFragment"
+        android:label="获赞与收藏"
+        tools:layout="@layout/fragment_user_list">
+        <argument
+            android:name="userId"
+            app:argType="long"
+            android:defaultValue="0L" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.xiaohongshu.ui.message.ChatFragment"
+        android:label="聊天"
+        tools:layout="@layout/fragment_chat">
+        <argument
+            android:name="username"
+            app:argType="string"
+            android:defaultValue="User" />
+        <argument
+            android:name="userId"
+            app:argType="long"
+            android:defaultValue="0L" />
+    </fragment>
+</navigation>
