@@ -5,11 +5,15 @@ import com.example.xiaohongshu.data.model.Message
 import com.example.xiaohongshu.data.model.Note
 import com.example.xiaohongshu.data.model.User
 import com.example.xiaohongshu.model.Comment
+import okhttp3.MultipartBody
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Part
 
 interface ApiService {
     // Auth
@@ -35,6 +39,10 @@ interface ApiService {
     @POST("notes")
     suspend fun createNote(@Body request: CreateNoteRequest): Note
 
+    @Multipart
+    @POST("notes/upload")
+    suspend fun uploadImage(@Part file: MultipartBody.Part): UploadResponse
+
     @GET("notes/my")
     suspend fun getMyNotes(): List<Note>
 
@@ -50,17 +58,20 @@ interface ApiService {
     @POST("notes/{id}/collect")
     suspend fun toggleCollect(@Path("id") id: Long): CollectResponse
 
+    @DELETE("notes/{id}")
+    suspend fun deleteNote(@Path("id") id: Long): Unit
+
     // Comments
-    @GET("comments/note/{noteId}")
+    @GET("comments/note/{id}")
     suspend fun getComments(
-        @Path("noteId") noteId: Long,
+        @Path("id") noteId: Long,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
     ): List<Comment>
 
-    @POST("comments/note/{noteId}")
+    @POST("comments/note/{id}")
     suspend fun createComment(
-        @Path("noteId") noteId: Long,
+        @Path("id") noteId: Long,
         @Body request: CreateCommentRequest
     ): Comment
 
@@ -136,3 +147,5 @@ data class CreateNoteRequest(
 data class FollowResponse(
     val isFollowing: Boolean
 )
+
+

@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body, Query, Param, UseGuards, Req, Headers, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Query, Param, UseGuards, Req, Headers, Logger, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('notes')
 export class NotesController {
@@ -55,6 +58,26 @@ export class NotesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, callback) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = extname(file.originalname);
+        callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+      },
+    }),
+  }))
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    this.logger.log(`File uploaded: ${file.filename}`);
+    // Return the URL of the uploaded file
+    // Assuming the server is running on localhost:3000
+    // In production, this should be configured via environment variables
+    return { url: `http://10.0.2.2:3000/uploads/${file.filename}` };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Body() createNoteDto: CreateNoteDto, @Req() req) {
     this.logger.log(`create: userId=${req.user.userId}, dto=${JSON.stringify(createNoteDto)}`);
@@ -83,5 +106,12 @@ export class NotesController {
   async toggleCollect(@Param('id') id: number, @Req() req) {
     this.logger.log(`toggleCollect: userId=${req.user.userId}, noteId=${id}`);
     return this.notesService.toggleCollect(req.user.userId, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async delete(@Param('id') id: number, @Req() req) {
+    this.logger.log(`delete: userId=${req.user.userId}, noteId=${id}`);
+    return this.notesService.delete(id, req.user.userId);
   }
 }

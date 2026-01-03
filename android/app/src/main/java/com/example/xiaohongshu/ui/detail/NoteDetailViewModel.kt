@@ -7,13 +7,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.xiaohongshu.model.Comment
 import com.example.xiaohongshu.data.model.Note
 import com.example.xiaohongshu.data.repository.NoteRepository
+import com.example.xiaohongshu.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class NoteDetailViewModel @Inject constructor(
-    private val repository: NoteRepository
+    private val repository: NoteRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _note = MutableLiveData<Note>()
@@ -25,13 +27,46 @@ class NoteDetailViewModel @Inject constructor(
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
 
+    private val _isOwner = MutableLiveData<Boolean>()
+    val isOwner: LiveData<Boolean> = _isOwner
+
+    private val _deleteSuccess = MutableLiveData<Boolean>()
+    val deleteSuccess: LiveData<Boolean> = _deleteSuccess
+
     fun loadNoteDetail(id: Long) {
         viewModelScope.launch {
             try {
                 val result = repository.getNoteDetail(id)
                 _note.value = result
+                // Check ownership
+                result.user?.let { noteUser ->
+                    checkOwnership(noteUser.id)
+                }
             } catch (e: Exception) {
                 _error.value = "Failed to load note: ${e.message}"
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun checkOwnership(noteUserId: Long) {
+        viewModelScope.launch {
+            try {
+                val currentUser = userRepository.getProfile()
+                _isOwner.value = (currentUser.id == noteUserId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun deleteNote(noteId: Long) {
+        viewModelScope.launch {
+            try {
+                repository.deleteNote(noteId)
+                _deleteSuccess.value = true
+            } catch (e: Exception) {
+                _error.value = "Failed to delete note: ${e.message}"
                 e.printStackTrace()
             }
         }

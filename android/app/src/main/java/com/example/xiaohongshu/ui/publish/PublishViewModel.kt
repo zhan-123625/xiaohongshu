@@ -1,17 +1,19 @@
 package com.example.xiaohongshu.ui.publish
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import com.example.xiaohongshu.data.model.Note
 import com.example.xiaohongshu.data.model.User
 import com.example.xiaohongshu.data.repository.NoteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
-
-import android.net.Uri
 
 @HiltViewModel
 class PublishViewModel @Inject constructor(
@@ -21,17 +23,18 @@ class PublishViewModel @Inject constructor(
     private val _publishResult = MutableLiveData<Boolean>()
     val publishResult: LiveData<Boolean> = _publishResult
 
-    fun publishNote(title: String, content: String, imageUri: Uri?) {
+    fun publishNote(context: Context, title: String, content: String, imageUri: Uri?) {
         viewModelScope.launch {
             try {
-                // Mock user and other fields for now
-                // In a real app, you would upload the image first, get the URL, and then create the note
-                // For now, we just use a placeholder if it's a local URI, because the server can't see local URIs
                 val imageUrl = if (imageUri != null) {
-                    // TODO: Implement real image upload
-                    "https://picsum.photos/400/300" // Random image for demo
+                    val file = getFileFromUri(context, imageUri)
+                    if (file != null) {
+                        repository.uploadImage(file)
+                    } else {
+                        null
+                    }
                 } else {
-                    "https://via.placeholder.com/150"
+                    null
                 }
                 
                 repository.createNote(title, content, imageUrl)
@@ -40,6 +43,21 @@ class PublishViewModel @Inject constructor(
                 e.printStackTrace()
                 _publishResult.value = false
             }
+        }
+    }
+
+    private fun getFileFromUri(context: Context, uri: Uri): File? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+            val file = File(context.cacheDir, "upload_image_${System.currentTimeMillis()}.jpg")
+            val outputStream = FileOutputStream(file)
+            inputStream.copyTo(outputStream)
+            inputStream.close()
+            outputStream.close()
+            file
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }

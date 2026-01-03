@@ -6,7 +6,11 @@ import com.example.xiaohongshu.api.CreateCommentRequest
 import com.example.xiaohongshu.api.CreateNoteRequest
 import com.example.xiaohongshu.model.Comment
 import com.example.xiaohongshu.data.model.Note
+import java.io.File
 import javax.inject.Inject
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 
 /**
  * 笔记数据仓库
@@ -43,6 +47,14 @@ class NoteRepository @Inject constructor(
         return apiService.createNote(request)
     }
 
+    suspend fun uploadImage(file: File): String {
+        Log.d(TAG, "Uploading image: ${file.name}")
+        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
+        val response = apiService.uploadImage(body)
+        return response.url
+    }
+
     /**
      * 获取笔记详情
      * @param id 笔记ID
@@ -53,7 +65,16 @@ class NoteRepository @Inject constructor(
     }
 
     /**
-     * 获取笔记评论列表
+     * 删除笔记
+     * @param id 笔记ID
+     */
+    suspend fun deleteNote(id: Long) {
+        Log.d(TAG, "Deleting note: $id")
+        apiService.deleteNote(id)
+    }
+
+    /**
+     * 获取评论列表
      * @param noteId 笔记ID
      */
     suspend fun getComments(noteId: Long): List<Comment> {

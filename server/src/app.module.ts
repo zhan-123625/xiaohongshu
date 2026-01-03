@@ -16,9 +16,15 @@ import { AdminModule } from './admin/admin.module';
 import { MessagesModule } from './messages/messages.module';
 import { Message } from './entities/message.entity';
 import { Block } from './entities/block.entity';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',

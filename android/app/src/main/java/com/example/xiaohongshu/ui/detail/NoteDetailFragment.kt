@@ -72,6 +72,17 @@ class NoteDetailFragment : Fragment() {
             startActivity(android.content.Intent.createChooser(shareIntent, "分享到"))
         }
 
+        binding.btnDelete.setOnClickListener {
+            android.app.AlertDialog.Builder(context)
+                .setTitle("提示")
+                .setMessage("确定要删除这条笔记吗？")
+                .setPositiveButton("删除") { _, _ ->
+                    viewModel.deleteNote(noteId)
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+
         // Bottom Bar Actions
         binding.btnLike.setOnClickListener {
             viewModel.toggleLike(noteId)
@@ -159,6 +170,17 @@ class NoteDetailFragment : Fragment() {
                 .load(R.mipmap.ic_launcher_round)
                 .circleCrop()
                 .into(binding.ivMyAvatar)
+        }
+
+        viewModel.isOwner.observe(viewLifecycleOwner) { isOwner ->
+            binding.btnDelete.visibility = if (isOwner) View.VISIBLE else View.GONE
+        }
+
+        viewModel.deleteSuccess.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                Toast.makeText(context, "删除成功", Toast.LENGTH_SHORT).show()
+                findNavController().navigateUp()
+            }
         }
 
         viewModel.comments.observe(viewLifecycleOwner) { comments ->

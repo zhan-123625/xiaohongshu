@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Note } from '../entities/note.entity';
@@ -102,6 +102,23 @@ export class NotesService {
     return { isCollected: !existing, count };
   }
 
+  async create(noteData: Partial<Note>): Promise<Note> {
+    this.logger.log(`create: noteData=${JSON.stringify(noteData)}`);
+    const note = this.notesRepository.create(noteData);
+    return this.notesRepository.save(note);
+  }
+
+  async delete(id: number, userId: number): Promise<void> {
+    const note = await this.notesRepository.findOne({ where: { id }, relations: ['user'] });
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+    if (note.user.id !== userId) {
+      throw new ForbiddenException('You can only delete your own notes');
+    }
+    await this.notesRepository.remove(note);
+  }
+
   async findByUserId(userId: number): Promise<any[]> {
     this.logger.log(`findByUserId: userId=${userId}`);
     const notes = await this.notesRepository.find({
@@ -144,11 +161,5 @@ export class NotesService {
     return Promise.all(notes.map(async (note) => {
       return this.enrichNote(note, userId);
     }));
-  }
-
-  async create(noteData: Partial<Note>): Promise<Note> {
-    this.logger.log(`create: noteData=${JSON.stringify(noteData)}`);
-    const note = this.notesRepository.create(noteData);
-    return this.notesRepository.save(note);
   }
 }

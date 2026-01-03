@@ -66,7 +66,7 @@ class PublishFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            viewModel.publishNote(title, content, selectedImageUri)
+            viewModel.publishNote(requireContext(), title, content, selectedImageUri)
         }
 
         viewModel.publishResult.observe(viewLifecycleOwner) { success ->
